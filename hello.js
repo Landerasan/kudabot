@@ -7,7 +7,7 @@ const bot = new TelegramBot(token, {polling: true})
 bot.onText(/\/help/, (msg, match) => {
 
 	const chatId = msg.chat.id
-
+	console.log(msg.chat.id)
 	bot.sendMessage(chatId, "Помогаю", {
 		"reply_markup": {
 			"keyboard": [["give tramvai"], ["2"], ["3"]]
@@ -17,6 +17,7 @@ bot.onText(/\/help/, (msg, match) => {
 
 bot.onText(/give tramvai/, (msg, match) => {
 
+	console.log(msg.chat.id)
 	const chatId = msg.chat.id
 	let random = getRandomInt(0,39)
 	if(getRandomInt(0,1) == 0){
