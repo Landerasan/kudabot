@@ -26,17 +26,34 @@ bot.onText(/\/start/, (msg, match) => {
 })
 
 //ЕБУЧИЙ КОСТЫЛЬ
+/*
+В целом то как тут сделано - сделано неверно, нужно написать /visited и посмотреть последний маршрут который человек спрашивал,
+Переспросить "его ли посетил", получить ответ да/нет, если да, то самому узнать последний, если нет, то просто спросить номер
+Как это сделать адекватно - хз, но именно для таких вещей я и хочу монГОД использовать
+*/
 bot.onText(/visited.{0,5}/, (msg, match) => {
     const chatId = msg.chat.id
     let clear = msg.text.replace(/[visited]/g,"").replace(/[ ]/g, "")
-    db.query(`SELECT id from tram_list tl WHERE name = "${clear}";`, function (err, rows) {
-        let tramId = rows[0].id
-        db.query(`SELECT id from users WHERE chat_id = "${chatId}";`, function (err, rows) {
-            let userId = rows[0].id
-            db.query(`INSERT into visited_trams(user_id, tram_id) values (${userId}, ${tramId});`)
+    if(clear == ""){
+        db.query(`SELECT * FROM tram_list tl where id in (SELECT tram_id FROM visited_trams vt where user_id = (SELECT user_id FROM users where chat_id = ${chatId}))`,function (err, rows) {
+            bot.sendMessage(chatId,`Вы посетили:`)
+            for(let i = 0; i < rows.length; i++){
+                bot.sendMessage(chatId,`Маршрут ${rows[i].name} ${rows[i].path}`)
+            }
         })
-    })
-    bot.sendMessage(chatId, `Маршрут: ${clear} добавлен в список посещенных`)
+    }
+    //Тут еще можно вставить 2 одинаковых маршрута, нет проверки на одинаковость, лохпидрнетдрузей
+    else{
+        db.query(`SELECT id from tram_list tl WHERE name = "${clear}";`, function (err, rows) {
+            let tramId = rows[0].id
+            db.query(`SELECT id from users WHERE chat_id = "${chatId}";`, function (err, rows) {
+                let userId = rows[0].id
+                db.query(`INSERT into visited_trams(user_id, tram_id) values (${userId}, ${tramId});`, function (err, rows) {
+                    bot.sendMessage(chatId, `Маршрут: ${clear} добавлен в список посещенных`)
+                })
+            })
+        })
+    }
 })
 //КОНЕЦ ЕБУЧЕГО КОСТЫЛЯ
 
